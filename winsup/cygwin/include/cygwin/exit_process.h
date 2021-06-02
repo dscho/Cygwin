@@ -156,7 +156,7 @@ static int
 exit_process (HANDLE process, int exit_code)
 {
   LPTHREAD_START_ROUTINE address = NULL;
-  DWORD pid = GetProcessId (process);
+  DWORD pid = GetProcessId (process), code;
   int signo = exit_code & 0x7f;
   switch (signo)
     {
@@ -164,7 +164,8 @@ exit_process (HANDLE process, int exit_code)
     case SIGQUIT:
       if (kill_via_console_helper (
               process, L"CtrlRoutine",
-              signo == SIGINT ? CTRL_C_EVENT : CTRL_BREAK_EVENT, pid))
+              signo == SIGINT ? CTRL_C_EVENT : CTRL_BREAK_EVENT, pid) &&
+	  GetExitCodeProcess(process, &code) && code != STILL_ACTIVE)
         return 0;
       /* fall-through */
     case SIGTERM:
